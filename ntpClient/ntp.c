@@ -49,20 +49,20 @@ void error( char* msg ){
     exit( 0 ); // Quit the process.
 }
 
-ntp_packet enviarPacote2(){
+ntp_packet enviarPacote2(){ //função que envia um pacote
     
     ntp_packet x = { 0xFE, 0x0C, 0xAC, 0x01, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x98, 0XFF };
     return x;
 }
 
-ntp_packet enviarPacote3(){
+ntp_packet enviarPacote3(){ //função que envia um outro pacote
     
     ntp_packet x = { 0xFE, 0x0C, 0xB0, 0x01, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x98, 0XFF };
     return x;
 }
 
 //https://acervolima.com/atraso-de-tempo-em-c/
-void delay(int number_of_seconds){
+void delay(int number_of_seconds){ //função para dar delay entre os envios de cada pacote
     // Converting time into milli_seconds
     int milli_seconds = 1000 * number_of_seconds;
   
@@ -79,6 +79,7 @@ int main( int argc, char* argv[ ] ){
 
   int portno = 123; // NTP UDP port number.
 
+  //primeiro servidor
   char* host_name = "us.pool.ntp.org"; // NTP server host-name.
   
   //segundo servidor
@@ -97,9 +98,9 @@ int main( int argc, char* argv[ ] ){
   memset( &packet3,0, sizeof( ntp_packet ) );
   // Set the first byte's bits to 00,011,011 for li = 0, vn = 3, and mode = 3. The rest will be left set to zero.
 
-  *( ( char * ) &packet + 0 ) = 0x1b; // Represents 27 in base 10 or 00011011 in base 2.
+ *( ( char * ) &packet + 0 ) = 0x1b; // Represents 27 in base 10 or 00011011 in base 2.
  *( ( char * ) &packet2 + 0 ) = 0x1b;
-  *( ( char * ) &packet3 + 0 ) = 0x1b;
+ *( ( char * ) &packet3 + 0 ) = 0x1b;
   // Create a UDP socket, convert the host-name to an IP address, set the port number,
   // connect to the server, send the packet, and then read in the return packet.
 
@@ -113,10 +114,11 @@ int main( int argc, char* argv[ ] ){
     
   server = gethostbyname( host_name ); // Convert URL to IP.
    
-//Se o primeiro servidor estiver indisponível, tenta o segundo
+//Passa pro segundo servidor se o primeiro cair
   if ( server == NULL){
     server = gethostbyname( host_name2 );
   }
+//retorna erro se os servidores não estiverem disponíveis ou se o servidor não existir
   else if(server == NULL){
     error( "ERROR, no such host" );
   }
@@ -164,12 +166,15 @@ int main( int argc, char* argv[ ] ){
   // The number of seconds correspond to the seconds passed since 1900.
   // ntohl() converts the bit/byte order from the network's to host's "endianness".
 
-  packet.txTm_s = ntohl( packet.txTm_s ); // Time-stamp seconds.
-  packet.txTm_f = ntohl( packet.txTm_f ); // Time-stamp fraction of a second.
+  //timestamp do pacote 1
+  packet.txTm_s = ntohl( packet.txTm_s ); // Time-stamp seconds
+  packet.txTm_f = ntohl( packet.txTm_f ); // Time-stamp fraction of a second 
 
+  //timestamp do pacote 2
   packet2.txTm_s = ntohl( packet2.txTm_s ); // Time-stamp seconds.
   packet2.txTm_f = ntohl( packet2.txTm_f ); // Time-stamp fraction of a second.
   
+  //timestamp do pacote 3
   packet3.txTm_s = ntohl( packet3.txTm_s ); // Time-stamp seconds.
   packet3.txTm_f = ntohl( packet3.txTm_f ); // Time-stamp fraction of a second.
   
@@ -178,14 +183,18 @@ int main( int argc, char* argv[ ] ){
   // This leaves the seconds since the UNIX epoch of 1970.
   // (1900)------------------(1970)**************(Time Packet Left the Server)
 
+  //Timestamp em GMT 0 e GMT Palo Alto para o pacote 1
   time_t txTm = ( time_t ) ( packet.txTm_s - NTP_TIMESTAMP_DELTA );
   time_t txTm2 = ( time_t ) ( packet.txTm_s - NTP_TIMESTAMP_DELTA  - 7*60*60 );
   
+  //Timestamp em GMT 0 e GMT Palo Alto para o pacote 2
   time_t txTm3 = ( time_t ) ( packet2.txTm_s - NTP_TIMESTAMP_DELTA );
   time_t txTm4 = ( time_t ) ( packet2.txTm_s - NTP_TIMESTAMP_DELTA  - 7*60*60 );
 
+  //Timestamp em GMT 0 e GMT Palo Alto para o pacote 3
   time_t txTm5 = ( time_t ) ( packet3.txTm_s - NTP_TIMESTAMP_DELTA );
   time_t txTm6 = ( time_t ) ( packet3.txTm_s - NTP_TIMESTAMP_DELTA  - 7*60*60 );
+
   // Print the time we got from the server, accounting for local timezone and conversion from UTC time.
     printf("Pacote 1: \n");
     printf( "Time: %s", ctime( ( const time_t* ) &txTm ) );

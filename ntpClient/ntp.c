@@ -80,10 +80,10 @@ int main( int argc, char* argv[ ] ){
   int portno = 123; // NTP UDP port number.
 
   //primeiro servidor
-  char* host_name = "us.pool.ntp.org"; // NTP server host-name.
+  char* host_name = "us.pool.ntp.org"; // NTP server host-name USA
   
   //segundo servidor
-  char* host_name2 = "a.ntp.br"; // NTP server host-name.
+  char* host_name2 = "pool.ntp.org"; // NTP server host-name Global
 
   // Structure that defines the 48 byte NTP packet protocol.
 
